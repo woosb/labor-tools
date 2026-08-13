@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head(${post.title})}"></head>
+<body>
+<header th:replace="~{fragments/common :: header}"></header>
+
+<main>
+    <article>
+        <h1 th:text="${post.title}">제목</h1>
+        <time th:if="${post.publishedAt != null}"
+              th:text="${#temporals.format(post.publishedAt, 'yyyy-MM-dd')}">날짜</time>
+        <ul class="tags">
+            <li th:each="tag : ${post.tags}" th:text="${tag.name}">태그</li>
+        </ul>
+
+        <!-- 서버에서 렌더링한 HTML 이므로 utext. 작성자가 본인뿐일 때만 안전하다. -->
+        <div class="content" th:utext="${post.contentHtml}"></div>
+    </article>
+</main>
+</body>
+</html>

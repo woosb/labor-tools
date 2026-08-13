@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('글 목록')}"></head>
+<body>
+<header th:replace="~{fragments/common :: header}"></header>
+
+<main>
+    <ul class="post-list">
+        <li th:each="post : ${posts.content}">
+            <a th:href="@{/posts/{slug}(slug=${post.slug})}" th:text="${post.title}">제목</a>
+            <p th:text="${post.summary}">요약</p>
+            <time th:if="${post.publishedAt != null}"
+                  th:text="${#temporals.format(post.publishedAt, 'yyyy-MM-dd')}">날짜</time>
+        </li>
+    </ul>
+
+    <p th:if="${posts.isEmpty()}">아직 발행한 글이 없습니다.</p>
+
+    <nav class="pagination">
+        <a th:if="${posts.hasPrevious()}"
+           th:href="@{/posts(page=${posts.number - 1})}">이전</a>
+        <a th:if="${posts.hasNext()}"
+           th:href="@{/posts(page=${posts.number + 1})}">다음</a>
+    </nav>
+</main>
+</body>
+</html>

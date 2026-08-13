@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: labor-tools
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/site}
+    username: ${DB_USERNAME:site}
+    password: ${DB_PASSWORD:site}
+
+  jpa:
+    open-in-view: false          # 뷰 렌더링 중 커넥션 점유 방지. 반드시 false.
+    hibernate:
+      ddl-auto: validate         # 스키마는 Flyway가 소유. Hibernate는 검증만.
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  thymeleaf:
+    cache: true                  # local 프로파일에서 override
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+site:
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    # BCrypt 해시. 평문 아님. 생성 방법은 README 참고.
+    password-hash: ${ADMIN_PASSWORD_HASH}
+
+logging:
+  level:
+    dev.sungbin.labortools: INFO

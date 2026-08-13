@@ -1,0 +1,24 @@
+/* 뼈대 단계의 최소 스타일. 디자인은 별도 단계에서. */
+:root { --fg: #1a1a1a; --muted: #6b6b6b; --line: #e0e0e0; }
+
+body {
+    margin: 0 auto;
+    max-width: 44rem;
+    padding: 2rem 1.25rem 6rem;
+    color: var(--fg);
+    font: 16px/1.75 system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+nav a { margin-right: 1rem; }
+.post-list { list-style: none; padding: 0; }
+.post-list li { padding: 1.25rem 0; border-bottom: 1px solid var(--line); }
+.post-list p { color: var(--muted); margin: .25rem 0; }
+time { color: var(--muted); font-size: .875rem; }
+.tags { display: flex; gap: .5rem; list-style: none; padding: 0; }
+.error { color: #c0392b; }
+.flash { padding: .75rem 1rem; background: #f0f7ff; }
+
+form label { display: block; margin: 1rem 0 .25rem; }
+form input, form textarea { width: 100%; padding: .5rem; font: inherit; box-sizing: border-box; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--line); }

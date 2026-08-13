@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('글 편집')}"></head>
+<body>
+<header th:replace="~{fragments/common :: header}"></header>
+
+<main>
+    <p th:if="${message}" th:text="${message}" class="flash"></p>
+
+    <form th:object="${form}" method="post"
+          th:action="${post != null} ? @{/admin/posts/{id}(id=${post.id})} : @{/admin/posts}">
+
+        <label>제목
+            <input type="text" th:field="*{title}">
+        </label>
+        <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error"></p>
+
+        <label>슬러그 (URL)
+            <input type="text" th:field="*{slug}" placeholder="annual-leave-accrual">
+        </label>
+        <p th:if="${#fields.hasErrors('slug')}" th:errors="*{slug}" class="error"></p>
+
+        <label>요약
+            <input type="text" th:field="*{summary}">
+        </label>
+
+        <label>태그 (콤마 구분)
+            <input type="text" th:field="*{tags}" placeholder="연차,근로기준법">
+        </label>
+
+        <label>본문 (마크다운)
+            <textarea th:field="*{contentMd}" rows="25"></textarea>
+        </label>
+        <p th:if="${#fields.hasErrors('contentMd')}" th:errors="*{contentMd}" class="error"></p>
+
+        <button type="submit">저장</button>
+    </form>
+
+    <form th:if="${post != null}"
+          th:action="@{/admin/posts/{id}/delete(id=${post.id})}" method="post"
+          onsubmit="return confirm('삭제합니다. 되돌릴 수 없습니다.');">
+        <button type="submit">삭제</button>
+    </form>
+</main>
+</body>
+</html>

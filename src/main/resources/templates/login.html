@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('로그인')}"></head>
+<body>
+<main>
+    <form th:action="@{/login}" method="post">
+        <p th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+        <label>아이디 <input type="text" name="username" autocomplete="username" required></label>
+        <label>비밀번호 <input type="password" name="password" autocomplete="current-password" required></label>
+        <button type="submit">로그인</button>
+    </form>
+</main>
+</body>
+</html>

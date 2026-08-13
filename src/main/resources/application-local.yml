@@ -1,0 +1,12 @@
+spring:
+  thymeleaf:
+    cache: false
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+
+logging:
+  level:
+    dev.sungbin.labortools: DEBUG
+    org.hibernate.SQL: DEBUG

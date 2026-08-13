@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('글 관리')}"></head>
+<body>
+<header th:replace="~{fragments/common :: header}"></header>
+
+<main>
+    <p th:if="${message}" th:text="${message}" class="flash"></p>
+    <a th:href="@{/admin/posts/new}">새 글</a>
+
+    <table>
+        <thead>
+        <tr><th>제목</th><th>상태</th><th>조회</th><th>수정일</th><th></th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="post : ${posts.content}">
+            <td><a th:href="@{/admin/posts/{id}/edit(id=${post.id})}" th:text="${post.title}">제목</a></td>
+            <td th:text="${post.status}">상태</td>
+            <td th:text="${post.viewCount}">0</td>
+            <td th:text="${#temporals.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}">날짜</td>
+            <td>
+                <form th:if="${!post.published}"
+                      th:action="@{/admin/posts/{id}/publish(id=${post.id})}" method="post">
+                    <button type="submit">발행</button>
+                </form>
+                <form th:if="${post.published}"
+                      th:action="@{/admin/posts/{id}/unpublish(id=${post.id})}" method="post">
+                    <button type="submit">발행 취소</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>
