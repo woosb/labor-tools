@@ -14,47 +14,76 @@
 | 공개 목록/상세 + 페이지네이션 | 완료 |
 | Flyway V1 스키마 | 완료 |
 | 단위 테스트 | 25개 통과 |
-| **연차 계산기** | **미착수 — 리포지토리 이름값을 아직 못 하고 있다** |
+| **연차 계산기** | **별도 저장소로 분리됨. 이 저장소에는 아직 연동 코드가 없다** |
 | 배포 (Docker / CI) | 미착수 |
+
+> **연차 계산 로직은 여기서 구현하지 않는다.**
+> [woosb/annual-leave-kr](https://github.com/woosb/annual-leave-kr) 로 떼어냈다.
+> 이 저장소가 할 일은 그 라이브러리를 **가져다 쓰는 것**뿐이다.
 
 ---
 
-## P1. 연차 계산기
+## P1. 연차 계산기 데모 라우트
 
-이 저장소의 존재 이유인데 코드가 한 줄도 없다. 여기부터 하는 게 맞다.
+계산 로직은 [annual-leave-kr](https://github.com/woosb/annual-leave-kr) 에 있다.
+여기서 할 일은 **의존성으로 가져와 화면을 붙이는 것**이다. 로직을 다시 짜지 않는다.
 
-### 설계 방향
+### 먼저: 아직 의존성으로 못 쓴다
 
-`dev.sungbin.labortools.leave` 패키지를 새로 만들고
-**Spring·JPA 의존성 없는 순수 도메인**으로 짠다.
-README 가 "연차계산 라이브러리 데모"라고 말하는 이상,
-나중에 별도 모듈로 떼어낼 수 있어야 한다.
+annual-leave-kr 은 `0.1.0-SNAPSHOT` 이고 **아직 어디에도 배포되지 않았다.**
+Maven Central 업로드는 그쪽 저장소의 0.1.0 릴리즈 시점 과제다.
+그래서 P1 은 다음 중 하나를 먼저 정해야 시작할 수 있다.
 
+| 방법 | 장점 | 대가 |
+|---|---|---|
+| **A. `publishToMavenLocal`** | 지금 당장 됨 | CI 가 깨진다. GitHub Actions 러너에는 `~/.m2` 가 비어 있다 |
+| **B. 컴포지트 빌드 (`includeBuild`)** | 라이브러리 수정이 즉시 반영, 배포 불필요 | 두 저장소가 나란히 클론돼 있어야 함. CI 는 checkout 을 두 번 해야 한다 |
+| **C. Maven Central 배포를 먼저** | 가장 깨끗하고 CI 도 그냥 됨 | 배포 파이프라인부터 끝내야 해서 P1 이 뒤로 밀린다 |
+
+**권장: 개발 중에는 B, 라우트가 완성되면 C 로 갈아탄다.**
+A 는 "내 노트북에서만 되는 빌드" 를 만들기 때문에 피하는 게 좋다.
+
+컴포지트 빌드는 `settings.gradle` 에 이렇게 붙인다.
+
+```groovy
+// settings.gradle — 두 저장소가 같은 부모 디렉터리에 있을 때
+includeBuild '../annual-leave-kr'
 ```
-leave/
-  AnnualLeaveCalculator.java   순수 계산기. static 또는 무상태 빈
-  LeaveInput.java              입사일, 기준일, 출근율, 산정방식
-  LeaveResult.java             발생일수 + 산출 근거 목록
-  AccrualBasis.java            enum: HIRE_DATE, FISCAL_YEAR
+
+```groovy
+// build.gradle
+implementation 'io.github.woosb:annual-leave-kr:0.1.0-SNAPSHOT'
 ```
 
-### 계산 규칙 (근로기준법 제60조)
+경로에 의존하므로, 실제로 붙일 때는 디렉터리가 없을 경우
+빌드가 알아볼 수 있는 메시지로 실패하게 감싸는 편이 낫다.
 
-> 구현 전에 조문 원문을 한 번 확인할 것. 아래는 기억 기반 요약이다.
+### 라이브러리가 지금 할 수 있는 것
 
-- 계속근로 1년 미만: **1개월 개근마다 1일**, 최대 11일
-- 1년간 출근율 80% 이상: **15일**
-- 1년간 출근율 80% 미만(1년 이상 근속): 1개월 개근마다 1일
-- 3년 이상 계속근로: 최초 1년을 초과하는 **매 2년마다 1일 가산**
-- 가산 포함 **상한 25일**
+**제60조 제1항(1년간 80% 이상 출근 시 15일)만 구현되어 있다.**
+제2항(1년 미만 월차)과 제4항(3년 이상 가산)은 테스트가 `@Disabled` 인 상태다.
+즉 지금 화면을 붙이면 **1년 미만 근속자와 3년 이상 근속자에게 0일이 나온다.**
 
-### 결정해야 할 것
+라우트를 먼저 만들 거라면 이 한계를 화면에 명시하거나,
+annual-leave-kr 에서 두 규칙을 먼저 구현하고 오는 게 낫다.
+어느 쪽이든 **모르고 배포하면 안 되는 사실**이다.
 
-1. **입사일 기준만 지원할지, 회계연도 기준까지 지원할지.**
-   회계연도 기준은 실무에서 더 많이 쓰이지만 비례 계산이 붙어 복잡해진다.
-   1차는 입사일 기준만 하고 `AccrualBasis` enum 자리만 잡아두는 쪽을 권함.
-2. **결과에 산출 근거를 담을지.** 담는 편이 데모로서 훨씬 설득력 있다.
-   `LeaveResult` 에 `List<String> reasons` 정도.
+### 공개 API
+
+```java
+var record = new AttendanceRecord(
+        LocalDate.of(2024, 3, 15),   // hireDate  입사일
+        LocalDate.of(2025, 3, 15),   // baseDate  산정 기준일
+        248,                          // prescribedWorkingDays  소정근로일수
+        248);                         // actualAttendanceDays   실제 출근일수
+
+AnnualLeave result = AnnualLeaveCalculator.calculate(record);
+result.totalDays();   // double
+result.grants();      // List<Grant> — 일수 + 근거 조문 + 사람이 읽을 설명
+```
+
+`grants()` 가 근거 조문을 함께 주므로, 화면에 총 일수만 찍지 말고
+**산출 근거를 같이 보여주는 게 이 데모의 핵심**이다. 그래야 계산기가 신뢰를 얻는다.
 
 ### 라우트
 
@@ -62,10 +91,14 @@ leave/
 `PostController` 와 섞지 말고 `LeaveController` 를 따로 둔다.
 `SecurityConfig` 는 `anyRequest().permitAll()` 이라 별도 설정 없이 공개된다.
 
+폼 입력은 `AttendanceRecord` 를 그대로 바인딩하지 말고
+별도 `LeaveForm` 을 두어 검증 메시지를 한글로 낸다.
+(`AttendanceRecord` 의 생성자 검증은 `IllegalArgumentException` 이라 폼 에러로 쓰기엔 거칠다.)
+
 ### 테스트
 
-계산기가 순수 함수라 테스트하기 가장 좋은 대상이다. 경계값 위주로:
-입사 1개월/11개월/1년/3년/10년/25일 상한 도달, 출근율 79.9% vs 80%, 윤년.
+계산 로직 자체의 테스트는 라이브러리 쪽 책임이다. 여기서 중복해서 짜지 않는다.
+이 저장소에서는 **폼 바인딩과 검증 메시지**만 덮으면 충분하다.
 
 ---
 
